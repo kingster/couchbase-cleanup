@@ -14,16 +14,17 @@ import (
 func main() {
 
   hostname := flag.String("host", "localhost", "couchbase cluster host") 
-  size  := flag.Int("size", 1234, "size of chunk")
+  size  := flag.Int("size", 100, "size of chunk")
   prefix := flag.String("prefix", "", "prefix")
+  bucket := flag.String("bucket","", "Bucket Name")
 
   flag.Parse()
 
-  fmt.Println("Using Prefix:", *prefix, "with Chunksize of", *size)
+  fmt.Println("Using Prefix:", *prefix, "with Chunksize of", *size, "from bucket" , *bucket)
 
-  if len(*prefix) > 0 {
+  if (len(*prefix) > 0 && len(*bucket) > 0) {
 
-    resp, err := http.PostForm("http://" + *hostname + ":8093/query/service", url.Values{"statement": {"SELECT META(p).id FROM StatsReporting p WHERE META(p).id LIKE '" + *prefix + "%'"} })
+    resp, err := http.PostForm("http://" + *hostname + ":8093/query/service", url.Values{"statement": {"SELECT META(p).id FROM "+ *bucket +" p WHERE META(p).id LIKE '" + *prefix + "%'"} })
     if err != nil {
       panic(err)
     }
@@ -46,7 +47,7 @@ func main() {
       panic(err)
     }
 
-    bucket, err := cluster.OpenBucket("StatsReporting", "")
+    bucket, err := cluster.OpenBucket(*bucket, "")
     if err != nil {
     	panic(err)
     }
@@ -70,7 +71,7 @@ func main() {
     }
 
   } else {
-    fmt.Println("Prefix Cannot Be empty")
+    fmt.Println("Bucket or Prefix Cannot Be empty")
   }
 }
 
